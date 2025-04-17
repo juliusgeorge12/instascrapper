@@ -1,0 +1,14 @@
+{
+    "useProxy": false,
+    "proxy": {
+        "username": "",
+        "password": "",
+        "port": 233,
+        "server": "192.234.123.22",
+        "secure": true
+    },
+    "useBot": false,
+    "bot": {
+        "path": "{root}/"
+    }
+}

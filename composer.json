@@ -1,0 +1,31 @@
+{
+    "name": "juliusgeorge/instascrapper",
+    "description": "A PHP package for scraping Instagram data.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Julius George",
+            "email": "julius.business12@gmail.com"
+        }
+    ],
+    "require": {
+        "php-webdriver/webdriver": "^1.15",
+        "guzzlehttp/guzzle": "^7.9",
+        "illuminate/container": "^12.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "InstaScrapper\\": "src/",
+            "InstaAuth\\": "auth/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "type": "library",
+    "version": "v1.0.0",
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
