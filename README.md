@@ -56,9 +56,7 @@ There are two ways of doing that
      ```
      use the cookie auth like in above step to authenticate
 2. Scrapping comments:
-     ```bash
-     python scraper.py
-     ```
+     
 
 ## Disclaimer
 This project is for educational purposes only. Scraping data from Instagram may violate their terms of service. Use responsibly and ensure compliance with applicable laws and regulations.
