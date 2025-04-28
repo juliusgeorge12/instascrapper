@@ -12,88 +12,40 @@ use Facebook\WebDriver\WebDriverExpectedCondition;
 
 class Auth
 {
-    protected int $driverPort = 9515;
-    protected string $driverHost = 'http://localhost';
+    protected static int $driverPort = 9515;
+    protected static $driverHost = 'http://localhost';
     protected RemoteWebDriver $driver;
     protected string $chromeDriverPath;
 
-    public function __construct()
+    // Constructor now accepts host and port parameters
+    public function __construct(string $host = 'http://localhost', int $port = 9515)
     {
-        $this->detectChromeDriver();
+        self::$driverHost = $host;
+        self::$driverPort = $port;
     }
 
     /**
-     * Detect and set the ChromeDriver path
+     * Static method to set up the host and port for the driver
      */
-    protected function detectChromeDriver(): void
+    public static function setup(string $host, int $port): void
     {
-        $os = PHP_OS_FAMILY;
-        $architecture = php_uname('m');
-        $basePath = __DIR__ . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR;
-        switch ($os) {
-            case 'Windows':
-                if (PHP_INT_SIZE === 8) {
-                    $driverDir = 'chromedriver-win64';
-                } else {
-                    $driverDir = 'chromedriver-win32';
-                }
-                $driverPath = $basePath . $driverDir . DIRECTORY_SEPARATOR . 'chromedriver.exe';
-                break;
-
-            case 'Linux':
-                $driverDir = 'chromedriver-linux64';
-                $driverPath = $basePath . $driverDir . DIRECTORY_SEPARATOR . 'chromedriver';
-                break;
-
-            case 'Darwin':
-                // Apple Silicon (M1/M2) uses 'arm64'
-                if (strpos($architecture, 'arm') !== false) {
-                    $driverDir = 'chromedriver-mac-arm64';
-                } else {
-                    $driverDir = 'chromedriver-mac-x64';
-                }
-                $driverPath = $basePath . $driverDir . DIRECTORY_SEPARATOR . 'chromedriver';
-                break;
-
-            default:
-                throw new \RuntimeException("Unsupported operating system: $os");
-        }
-
-        if (!file_exists($driverPath)) {
-            throw new \RuntimeException("ChromeDriver not found for $os ($architecture) at expected path: $driverPath");
-        }
-        $this->chromeDriverPath = $driverPath;
+        self::$driverHost = $host;
+        self::$driverPort = $port;
     }
 
     /**
-     * Start the WebDriver with Chrome options
+     * Connect to the running ChromeDriver instead of starting it
      */
-    protected function startDriver(): void
+    protected function connectDriver(): void
     {
-        $nullDevice = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'NUL' : '/dev/null';
-        $descriptorSpec = [
-            0 => ["pipe", "r"],
-            1 => ["file", $nullDevice, "a"],
-            2 => ["file", $nullDevice, "a"]
-        ];
-        $process = proc_open("{$this->chromeDriverPath} --port={$this->driverPort}", $descriptorSpec, $pipes);
-        if (!is_resource($process)) {
-            exit("Failed to start ChromeDriver\n");
+        $driverUrl = self::$driverHost . ':' . self::$driverPort;
+
+        // Check if ChromeDriver is running on the provided host and port
+        if (!$this->isChromeDriverRunning($driverUrl)) {
+            throw new Exception("ChromeDriver not running on $driverUrl. Kindly start the ChromeDriver.");
         }
-        $driverUrl = $this->driverHost . ':' . $this->driverPort;
-        // Wait until ChromeDriver is ready
-        $tries = 0;
-        while ($tries < 10) {
-            if (@file_get_contents("{$driverUrl}/status")) {
-                break;
-            }
-            sleep(1);
-            $tries++;
-        }
-        if ($tries >= 10) {
-            proc_terminate($process);
-            throw new Exception("ChromeDriver did not start in time.\n");
-        }
+
+        // Connect to the running ChromeDriver
         $options = new ChromeOptions();
         $options->addArguments([
             '--headless',
@@ -113,13 +65,24 @@ class Auth
     }
 
     /**
+     * Check if ChromeDriver is running by checking the status on the provided URL
+     */
+    private function isChromeDriverRunning(string $url): bool
+    {
+        $statusUrl = $url . '/status';
+        $response = @file_get_contents($statusUrl);
+
+        // If we can get a response, ChromeDriver is running
+        return !empty($response);
+    }
+
+    /**
      * Log in to Instagram and get auth cookies
      */
     public function login(string $username, string $password): string
     {
-        $this->startDriver();
+        $this->connectDriver();
         $this->driver->get('https://www.instagram.com/accounts/login/');
-        sleep(5);
         $this->driver->wait(10)->until(
             WebDriverExpectedCondition::presenceOfElementLocated(
                 WebDriverBy::cssSelector('#loginForm')
@@ -149,6 +112,7 @@ class Auth
         }
         return self::generateCookieAuth($cookiedata);
     }
+
     /**
      * Generate a serialized cookie string for the scrapper
      * @param array $cookies

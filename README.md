@@ -56,7 +56,31 @@ There are two ways of doing that
      ```
      use the cookie auth like in above step to authenticate
 2. Scrapping comments:
-     
+    Before scrapping you need to authenticate, you can do that using the steps above
+    Scrapping comments is pretty straight forward:
+    ```php
+    use InstaAuth\Auth;
+    use InstaScrapper\Scrapper;
+    use InstaScrapper\CommentScrapper;
+
+    //authenticate the scrapper, we will be using cookie authentication here
+    $cookie = [
+        'rur' => 'rur value',
+        'csrftoken' => 'csrftoken value',
+        'mid' => 'mid value',
+        'ig_id' => 'ig_id value',
+        'ds_user_id' => 'ds_user_id value',
+        'sessionid' => 'sessionid value'
+    ]
+    Scrapper::cookieAuth(Auth::generateCookieAuth($cookie));
+    $commentScrapper = new CommentScrapper();
+    //pass in data to the comment scrapper using the with method
+    $commentScrapper->with([
+        'shortcode' => 'the instagram post shortcode',
+        'max_comment' => 'maximum number of comment to scrape'
+    ]);
+    $comments = $commentScrapper->scrape();
+    ```
 
 ## Disclaimer
 This project is for educational purposes only. Scraping data from Instagram may violate their terms of service. Use responsibly and ensure compliance with applicable laws and regulations.
