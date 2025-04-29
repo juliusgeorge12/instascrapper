@@ -81,6 +81,9 @@ class Auth
      */
     public function login(string $username, string $password): string
     {
+        if (empty($password) || (strlen($password) < 6)) {
+            throw new Exception("password length must not be less than 6");
+        }
         $this->connectDriver();
         $this->driver->get('https://www.instagram.com/accounts/login/');
         $this->driver->wait(10)->until(
