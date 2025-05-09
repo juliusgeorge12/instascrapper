@@ -64,7 +64,7 @@ abstract class Scrapper
     protected static array $requiredCookies = [
         'csrftoken',
         'sessionid',
-        'rur',
+        //'rur', maynot be required
         'mid',
         'ig_did',
         'ds_user_id',
